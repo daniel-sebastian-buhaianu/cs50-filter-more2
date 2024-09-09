@@ -89,5 +89,54 @@ void blur(int height, int width, RGBTRIPLE image[height][width])
 // Detect edges
 void edges(int height, int width, RGBTRIPLE image[height][width])
 {
-    return;
+    // Create a copy of image
+    RGBTRIPLE copy[height][width];
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            copy[i][j] = image[i][j];
+        }
+    }
+
+    const int MAX_NEIGHBOURS = 8;
+    const int DX[] = {-1, -1, -1, 0, 1, 1, 1, 0};
+    const int DY[] = {-1, 0, 1, 1, 1, 0, -1, -1};
+    const int GX[] = {-1, 0, 1, 2, 1, 0, -1, -2};
+    const int GY[] = {-1, -2, -1, 0, 1, 2, 1, 0};
+
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            double gxRed = 0, gxGreen = 0, gxBlue = 0;
+            double gyRed = 0, gyGreen = 0, gyBlue = 0;
+
+            for (int k = 0; k < MAX_NEIGHBOURS; k++)
+            {
+                int row = i + DX[k];
+                int col = j + DY[k];
+
+                // Check if image[row][col] is neighbour of image[i][j]
+                if (row >= 0 && row < height && col >= 0 && col < width)
+                {
+                    gxRed += copy[row][col].rgbtRed * GX[k];
+                    gxGreen += copy[row][col].rgbtGreen * GX[k];
+                    gxBlue += copy[row][col].rgbtBlue * GX[k];
+
+                    gyRed += copy[row][col].rgbtRed * GY[k];
+                    gyGreen += copy[row][col].rgbtGreen * GY[k];
+                    gyBlue += copy[row][col].rgbtBlue * GY[k];
+                }
+            }
+
+            double newRed = round(sqrt(gxRed * gxRed + gyRed * gyRed));
+            double newGreen = round(sqrt(gxGreen * gxGreen + gyGreen * gyGreen));
+            double newBlue = round(sqrt(gxBlue * gxBlue + gyBlue * gyBlue));
+
+            image[i][j].rgbtRed = newRed > 255 ? 255 : newRed;
+            image[i][j].rgbtGreen = newGreen > 255 ? 255 : newGreen;
+            image[i][j].rgbtBlue = newBlue > 255 ? 255 : newBlue;
+        }
+    }
 }
